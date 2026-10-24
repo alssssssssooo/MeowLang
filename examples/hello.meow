@@ -1,0 +1,8 @@
+# 最簡單的 Python 風格 MeowLang 範例。
+#
+# 編譯：python3 tools/meowc.py examples/hello.meow -o hello.docx
+# 執行：native/meow hello.docx
+
+name = input("What is your name? ")
+print("Hello,", name, "!")
+print("2 + 3 =", 2 + 3)

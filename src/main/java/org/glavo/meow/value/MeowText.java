@@ -16,15 +16,15 @@
  */
 package org.glavo.meow.value;
 
-import org.apache.poi.xwpf.usermodel.XWPFRun;
 import org.glavo.meow.MeowContext;
+import org.glavo.meow.MeowRun;
 import org.glavo.meow.MeowUtils;
 import org.glavo.meow.ast.MeowExpression;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public record MeowText(List<XWPFRun> content) implements MeowFunction {
+public record MeowText(List<MeowRun> content) implements MeowFunction {
 
     @Override
     public String getName() {
@@ -33,12 +33,13 @@ public record MeowText(List<XWPFRun> content) implements MeowFunction {
 
     @Override
     public MeowValue applyValues(MeowContext context, List<MeowValue> args) {
-        List<XWPFRun> results = new ArrayList<>(this.content);
+        List<MeowRun> results = new ArrayList<>(this.content.size() + args.size());
+        results.addAll(this.content);
         for (MeowValue arg : args) {
-            if (arg instanceof MeowText(List<XWPFRun> argContent)) {
+            if (arg instanceof MeowText(List<MeowRun> argContent)) {
                 results.addAll(argContent);
             } else {
-                results.add(MeowUtils.toXWPFRun(arg.toDisplayString(context)));
+                results.add(MeowUtils.toRun(arg.toDisplayString(context)));
             }
         }
         return new MeowText(results);
@@ -52,7 +53,7 @@ public record MeowText(List<XWPFRun> content) implements MeowFunction {
     @Override
     public String toDisplayString(MeowContext context) {
         StringBuilder builder = new StringBuilder();
-        for (XWPFRun run : content) {
+        for (MeowRun run : content) {
             builder.append(run.text());
         }
         return builder.toString();

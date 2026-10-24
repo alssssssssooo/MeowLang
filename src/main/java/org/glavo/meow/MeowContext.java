@@ -16,22 +16,17 @@
  */
 package org.glavo.meow;
 
-import org.apache.poi.xwpf.usermodel.XWPFDocument;
-import org.apache.poi.xwpf.usermodel.XWPFParagraph;
 import org.glavo.meow.ast.MeowExpression;
 import org.glavo.meow.value.MeowBuiltinFunction;
 import org.glavo.meow.value.MeowBuiltinMacro;
 import org.glavo.meow.value.MeowUnit;
 import org.glavo.meow.value.MeowValue;
-import org.jline.reader.LineReader;
-import org.jline.reader.LineReaderBuilder;
-import org.jline.terminal.Terminal;
 
 import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.text.MessageFormat;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 public final class MeowContext {
@@ -50,38 +45,28 @@ public final class MeowContext {
     // ---------------
 
     private final MeowContext parent;
-    private final Terminal terminal;
-    private final LineReader reader;
+    private final MeowConsole console;
     private final Map<Meow, MeowValue> binding = new LinkedHashMap<>();
 
 
     // For ROOT
     private MeowContext() {
         this.parent = null;
-        this.terminal = null;
-        this.reader = null;
+        this.console = null;
     }
 
     public MeowContext(MeowContext parent) {
         this.parent = parent;
-        this.terminal = parent.terminal;
-        this.reader = parent.reader;
+        this.console = parent.console;
     }
 
-    public MeowContext(Terminal terminal) {
+    public MeowContext(MeowConsole console) {
         this.parent = ROOT;
-        this.terminal = terminal;
-        this.reader = LineReaderBuilder.builder()
-                .terminal(terminal)
-                .build();
+        this.console = console;
     }
 
-    public Terminal getTerminal() {
-        return terminal;
-    }
-
-    public LineReader getReader() {
-        return reader;
+    public MeowConsole getConsole() {
+        return console;
     }
 
     public MeowValue getValue(Meow key) {
@@ -103,14 +88,12 @@ public final class MeowContext {
     }
 
     public void evalFile(Path file) throws IOException {
-        try (var xwpfDocument = new XWPFDocument(Files.newInputStream(file))) {
-            evalDocument(xwpfDocument);
-        }
+        evalDocument(MeowDocxReader.read(file));
     }
 
-    public void evalDocument(XWPFDocument document) {
-        for (XWPFParagraph paragraph : document.getParagraphs()) {
-            MeowExpression expr = MeowParser.parse(paragraph.getRuns(), true);
+    public void evalDocument(List<List<MeowRun>> paragraphs) {
+        for (List<MeowRun> paragraph : paragraphs) {
+            MeowExpression expr = MeowParser.parse(paragraph, true);
             log(">>> [{0}]", expr.toDebugString());
             MeowValue result = expr.eval(this);
             log("|   >>> return {0} in {1}", result.toDebugString(this), this);
@@ -122,7 +105,7 @@ public final class MeowContext {
 
     public void log(String pattern, Object... args) {
         if (Meow.DEBUG) {
-            terminal.writer().println("[DEBUG] " + MessageFormat.format(pattern, args));
+            console.println("[DEBUG] " + MessageFormat.format(pattern, args));
         }
     }
 

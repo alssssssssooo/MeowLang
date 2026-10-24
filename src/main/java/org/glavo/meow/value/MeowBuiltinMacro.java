@@ -18,11 +18,11 @@ package org.glavo.meow.value;
 
 import org.glavo.meow.Meow;
 import org.glavo.meow.MeowContext;
+import org.glavo.meow.MeowHighlight;
 import org.glavo.meow.MeowUtils;
 import org.glavo.meow.ast.MeowExpression;
 import org.glavo.meow.ast.MeowExpressionList;
 import org.glavo.meow.ast.MeowIdentifier;
-import org.openxmlformats.schemas.wordprocessingml.x2006.main.STHighlightColor;
 
 import java.util.List;
 
@@ -85,8 +85,12 @@ public enum MeowBuiltinMacro implements MeowMacro {
     private final Meow meow;
 
     MeowBuiltinMacro(String name, int color) {
+        this(name, color, MeowHighlight.LIGHT_GRAY);
+    }
+
+    MeowBuiltinMacro(String name, int color, MeowHighlight highlightColor) {
         this.name = name;
-        this.meow = Meow.builtin(color, STHighlightColor.LIGHT_GRAY);
+        this.meow = Meow.builtin(color, highlightColor);
     }
 
     @Override

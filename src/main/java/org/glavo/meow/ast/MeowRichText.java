@@ -16,15 +16,15 @@
  */
 package org.glavo.meow.ast;
 
-import org.apache.poi.xwpf.usermodel.XWPFRun;
 import org.glavo.meow.MeowContext;
+import org.glavo.meow.MeowRun;
 import org.glavo.meow.MeowUtils;
 import org.glavo.meow.value.MeowText;
 import org.glavo.meow.value.MeowValue;
 
 import java.util.List;
 
-public record MeowRichText(List<XWPFRun> content) implements MeowExpression {
+public record MeowRichText(List<MeowRun> content) implements MeowExpression {
     @Override
     public MeowValue eval(MeowContext context) {
         return new MeowText(content);

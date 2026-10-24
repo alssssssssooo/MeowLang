@@ -16,27 +16,21 @@
  */
 package org.glavo.meow;
 
-import org.jline.terminal.Terminal;
-import org.jline.terminal.TerminalBuilder;
-
 import java.io.IOException;
 import java.nio.file.Path;
 
 public class Main {
     public static void main(String[] args) throws IOException {
-        try (Terminal terminal = TerminalBuilder.builder()
-                .system(true)
-                .build()) {
+        try (MeowConsole console = new MeowConsole()) {
             try {
                 for (String arg : args) {
-                    new MeowContext(terminal).evalFile(Path.of(arg));
+                    new MeowContext(console).evalFile(Path.of(arg));
                 }
             } finally {
                 if (Meow.DEBUG) {
-                    terminal.writer().println(MeowSymbolMap.INSTANCE);
+                    console.println(MeowSymbolMap.INSTANCE.toString());
                 }
             }
-
         }
     }
 }

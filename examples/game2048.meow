@@ -1,0 +1,222 @@
+# Meow 2048
+#
+# 編譯：
+#   python3 tools/meowc.py examples/game2048.meow -o game2048.docx
+#
+# 執行：
+#   native/meow game2048.docx
+#
+# 操作：
+#   w = 上、a = 左、s = 下、d = 右、q = 離開
+
+def empty_board():
+    return [0, 0, 0, 0,
+            0, 0, 0, 0,
+            0, 0, 0, 0,
+            0, 0, 0, 0]
+
+
+def add_tile(board):
+    empty = []
+    for i in range(16):
+        if board[i] == 0:
+            empty.append(i)
+
+    if len(empty) == 0:
+        return False
+
+    slot = empty[random(len(empty))]
+    if random(10) < 9:
+        set(board, slot, 2)
+    else:
+        set(board, slot, 4)
+    return True
+
+
+def new_board():
+    board = empty_board()
+    add_tile(board)
+    add_tile(board)
+    return board
+
+
+def reverse(row):
+    return [row[3], row[2], row[1], row[0]]
+
+
+def slide(row):
+    tiles = []
+    for value in row:
+        if value != 0:
+            tiles.append(value)
+
+    out = []
+    gained = 0
+    i = 0
+    while i < len(tiles):
+        if i + 1 < len(tiles) and tiles[i] == tiles[i + 1]:
+            merged = tiles[i] * 2
+            out.append(merged)
+            gained += merged
+            i += 2
+        else:
+            out.append(tiles[i])
+            i += 1
+
+    while len(out) < 4:
+        out.append(0)
+
+    return [out, gained, out != row]
+
+
+def replace_row(board, r, row):
+    for c in range(4):
+        set(board, r * 4 + c, row[c])
+
+
+def move_left(board):
+    out = empty_board()
+    moved = False
+    gained_total = 0
+
+    for r in range(4):
+        row = board[r * 4:r * 4 + 4]
+        result = slide(row)
+        gained_total += result[1]
+        if result[2]:
+            moved = True
+        replace_row(out, r, result[0])
+
+    return [out, moved, gained_total]
+
+
+def move_right(board):
+    out = empty_board()
+    moved = False
+    gained_total = 0
+
+    for r in range(4):
+        row = reverse(board[r * 4:r * 4 + 4])
+        result = slide(row)
+        gained_total += result[1]
+        if result[2]:
+            moved = True
+        replace_row(out, r, reverse(result[0]))
+
+    return [out, moved, gained_total]
+
+
+def transpose(board):
+    out = empty_board()
+    for r in range(4):
+        for c in range(4):
+            set(out, c * 4 + r, board[r * 4 + c])
+    return out
+
+
+def move_up(board):
+    result = move_left(transpose(board))
+    return [transpose(result[0]), result[1], result[2]]
+
+
+def move_down(board):
+    result = move_right(transpose(board))
+    return [transpose(result[0]), result[1], result[2]]
+
+
+def move(board, direction):
+    if direction == "a":
+        return move_left(board)
+    if direction == "d":
+        return move_right(board)
+    if direction == "w":
+        return move_up(board)
+    return move_down(board)
+
+
+def can_move(board):
+    for i in range(16):
+        if board[i] == 0:
+            return True
+
+    for r in range(4):
+        for c in range(4):
+            value = board[r * 4 + c]
+            if c < 3 and value == board[r * 4 + c + 1]:
+                return True
+            if r < 3 and value == board[(r + 1) * 4 + c]:
+                return True
+
+    return False
+
+
+def has_won(board):
+    for i in range(16):
+        if board[i] == 2048:
+            return True
+    return False
+
+
+def cell(value):
+    if value == 0:
+        return "     ."
+    text = str(value)
+    while len(text) < 6:
+        text = " " + text
+    return text
+
+
+def print_board(board):
+    line = "+------+------+------+------+"
+    print(line)
+    for r in range(4):
+        print("|", cell(board[r * 4]), "|", cell(board[r * 4 + 1]),
+              "|", cell(board[r * 4 + 2]), "|", cell(board[r * 4 + 3]), "|")
+        print(line)
+
+
+def print_help():
+    print("")
+    print("Move: w = up, a = left, s = down, d = right, q = quit")
+    print("")
+
+
+def main():
+    board = new_board()
+    score = 0
+    done = False
+
+    clear()
+    print("MEOW 2048")
+    print_help()
+
+    while not done:
+        print_board(board)
+        print("Score:", score)
+
+        if has_won(board):
+            print("You win!")
+            done = True
+        elif not can_move(board):
+            print("Game over!")
+            done = True
+        else:
+            command = input("Move (w/a/s/d, q): ")
+            if command == "q":
+                done = True
+            elif command == "w" or command == "a" or command == "s" or command == "d":
+                result = move(board, command)
+                if result[1]:
+                    board = result[0]
+                    score += result[2]
+                    add_tile(board)
+                else:
+                    print("No move.")
+            else:
+                print("Unknown command.")
+
+    print("Final score:", score)
+    print("Bye.")
+
+
+main()

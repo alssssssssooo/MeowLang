@@ -16,35 +16,33 @@
  */
 package org.glavo.meow;
 
-import org.apache.poi.xwpf.usermodel.UnderlinePatterns;
-import org.apache.poi.xwpf.usermodel.XWPFRun;
 import org.glavo.meow.ast.MeowExpression;
+import org.glavo.meow.ast.MeowExpressionList;
 import org.glavo.meow.ast.MeowIdentifier;
 import org.glavo.meow.ast.MeowRichText;
-import org.glavo.meow.ast.MeowExpressionList;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public final class MeowParser {
-    public static MeowExpression parse(List<XWPFRun> expression, boolean top) {
+    public static MeowExpression parse(List<MeowRun> expression, boolean top) {
         var meowExpressions = new ArrayList<MeowExpression>();
 
         for (int i = 0; i < expression.size(); i++) {
-            XWPFRun term = expression.get(i);
+            MeowRun term = expression.get(i);
             Meow meow = Meow.of(term);
             if (meow == null) {
                 continue;
             }
 
-            if (meow.isBracket() || meow.getUnderline() != UnderlinePatterns.NONE) {
+            if (meow.isBracket() || meow.getUnderline() != MeowUnderline.NONE) {
                 int end = MeowUtils.findEnd(expression, meow, i);
 
-                List<XWPFRun> content = expression.subList(i + 1, end);
+                List<MeowRun> content = expression.subList(i + 1, end);
 
                 if (meow.isBracket()) {
                     meowExpressions.add(parse(content, false));
-                } else if (meow.getUnderline() == UnderlinePatterns.SINGLE) {
+                } else if (meow.getUnderline() == MeowUnderline.SINGLE) {
                     meowExpressions.add(new MeowRichText(content));
                 } else {
                     // TODO: ???

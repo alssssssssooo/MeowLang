@@ -17,16 +17,12 @@
 package org.glavo.meow.value;
 
 import kala.ansi.AnsiString;
-import org.apache.poi.xwpf.usermodel.UnderlinePatterns;
-import org.apache.poi.xwpf.usermodel.XWPFDocument;
-import org.apache.poi.xwpf.usermodel.XWPFParagraph;
-import org.apache.poi.xwpf.usermodel.XWPFPicture;
-import org.apache.poi.xwpf.usermodel.XWPFPictureData;
-import org.apache.poi.xwpf.usermodel.XWPFRun;
 import org.glavo.meow.Meow;
 import org.glavo.meow.MeowContext;
+import org.glavo.meow.MeowHighlight;
+import org.glavo.meow.MeowRun;
+import org.glavo.meow.MeowUnderline;
 import org.glavo.meow.MeowUtils;
-import org.openxmlformats.schemas.wordprocessingml.x2006.main.STHighlightColor;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
@@ -50,50 +46,51 @@ public enum MeowBuiltinFunction implements MeowFunction {
                     builder.append('\n');
                 }
 
-                if (value instanceof MeowText(List<XWPFRun> content)) {
-                    for (XWPFRun node : content) {
+                if (value instanceof MeowText(List<MeowRun> content)) {
+                    for (MeowRun node : content) {
                         var text = AnsiString.ofPlain(node.text());
                         if (!text.isEmpty()) {
-                            if (node.isBold()) {
+                            if (node.bold()) {
                                 text = text.overlay(AnsiString.Bold.On);
                             }
-                            if (node.getUnderline() != UnderlinePatterns.NONE) {
+                            if (node.underline() != MeowUnderline.NONE) {
                                 text = text.overlay(AnsiString.Underlined.On);
                             }
-                            if (node.getColor() != null) {
-                                int rgb = Integer.parseInt(node.getColor(), 16);
+                            if (node.color() != null) {
+                                int rgb = node.color();
                                 if (rgb != 0) {
                                     text = text.overlay(AnsiString.Color.True(rgb >> 16, (rgb >> 8) & 0xFF, rgb & 0xFF));
                                 }
                             }
-                            if (node.getTextHighlightColor() != STHighlightColor.NONE) {
-                                AnsiString.Attribute backgroundColor = MeowUtils.attributeOf(node.getTextHighlightColor());
+                            if (node.highlight() != MeowHighlight.NONE) {
+                                AnsiString.Attribute backgroundColor = MeowUtils.attributeOf(node.highlight());
                                 if (backgroundColor != null) {
                                     text = text.overlay(backgroundColor);
                                 }
                             }
 
-                            if (node.isItalic()) {
+                            if (node.italic()) {
                                 // Why Kala Ansi unsupported Italic?
                                 builder.append("\u001B[3m");
                             }
 
                             builder.append(text);
 
-                            if (node.isItalic()) {
+                            if (node.italic()) {
                                 // Why Kala Ansi unsupported Italic?
                                 builder.append("\u001b[0m");
                             }
                         }
 
-                        for (XWPFPicture picture : node.getEmbeddedPictures()) {
-                            XWPFPictureData pictureData = picture.getPictureData();
-                            byte[] data = pictureData.getData();
+                        for (byte[] data : node.pictures()) {
                             BufferedImage image;
                             try {
                                 image = ImageIO.read(new ByteArrayInputStream(data));
                             } catch (IOException e) {
                                 throw new UncheckedIOException(e);
+                            }
+                            if (image == null) {
+                                continue;
                             }
 
                             if (!builder.isEmpty() && builder.charAt(builder.length() - 1) != '\n') {
@@ -117,7 +114,7 @@ public enum MeowBuiltinFunction implements MeowFunction {
                 }
             }
 
-            context.getTerminal().writer().println(builder);
+            context.getConsole().println(builder.toString());
             return MeowUnit.UNIT;
         }
     },
@@ -127,10 +124,10 @@ public enum MeowBuiltinFunction implements MeowFunction {
         public MeowValue applyValues(MeowContext context, List<MeowValue> args) {
             String result;
             if (args.isEmpty()) {
-                result = context.getReader().readLine();
+                result = context.getConsole().readLine(null);
             } else if (args.size() == 1) {
                 if (args.getFirst() instanceof MeowText prompt) {
-                    result = context.getReader().readLine(prompt.toDisplayString(context));
+                    result = context.getConsole().readLine(prompt.toDisplayString(context));
                 } else {
                     throw new IllegalArgumentException("Expected a single text argument for prompt, but got: " + args.getFirst().toDisplayString(context));
                 }
@@ -138,7 +135,7 @@ public enum MeowBuiltinFunction implements MeowFunction {
                 throw new IllegalArgumentException("Expected 0 or 1 arguments, but got: " + args.size());
             }
 
-            return new MeowText(List.of(MeowUtils.toXWPFRun(result)));
+            return new MeowText(List.of(MeowUtils.toRun(result)));
         }
     };
 
@@ -146,8 +143,12 @@ public enum MeowBuiltinFunction implements MeowFunction {
     private final Meow meow;
 
     MeowBuiltinFunction(String name, int color) {
+        this(name, color, MeowHighlight.YELLOW);
+    }
+
+    MeowBuiltinFunction(String name, int color, MeowHighlight highlightColor) {
         this.name = name;
-        this.meow = Meow.builtin(color, STHighlightColor.YELLOW);
+        this.meow = Meow.builtin(color, highlightColor);
     }
 
     @Override

@@ -14,9 +14,7 @@ repositories {
 dependencies {
     implementation(libs.kala.ansi)
     implementation(libs.kala.template)
-    implementation(libs.poi.ooxml)
     implementation(libs.jline)
-    implementation(libs.log4j.core)
 
     testImplementation(platform("org.junit:junit-bom:5.10.0"))
     testImplementation("org.junit.jupiter:junit-jupiter")

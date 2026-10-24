@@ -17,19 +17,15 @@
 package org.glavo.meow;
 
 import kala.ansi.AnsiString;
-import org.apache.poi.xwpf.usermodel.XWPFDocument;
-import org.apache.poi.xwpf.usermodel.XWPFParagraph;
-import org.apache.poi.xwpf.usermodel.XWPFRun;
-import org.openxmlformats.schemas.wordprocessingml.x2006.main.STHighlightColor;
 
 import java.util.List;
 
 public final class MeowUtils {
-    public static boolean isBlank(XWPFRun term) {
-        return term.getEmbeddedPictures().isEmpty() && term.text().isBlank();
+    public static boolean isBlank(MeowRun term) {
+        return term.pictures().isEmpty() && term.text().isBlank();
     }
 
-    public static int findEnd(List<XWPFRun> expression, Meow startBracket, int startBracketIndex) {
+    public static int findEnd(List<MeowRun> expression, Meow startBracket, int startBracketIndex) {
         int end = startBracketIndex + 1;
         while (end < expression.size()) {
             if (startBracket.equals(Meow.of(expression.get(end)))) {
@@ -58,26 +54,26 @@ public final class MeowUtils {
                 .append('m');
     }
 
-    public static AnsiString.Attribute attributeOf(STHighlightColor.Enum color) {
-        if (color == STHighlightColor.BLACK) {
+    public static AnsiString.Attribute attributeOf(MeowHighlight color) {
+        if (color == MeowHighlight.BLACK) {
             return AnsiString.Back.Black;
-        } else if (color == STHighlightColor.BLUE) {
+        } else if (color == MeowHighlight.BLUE) {
             return AnsiString.Back.Blue;
-        } else if (color == STHighlightColor.CYAN) {
+        } else if (color == MeowHighlight.CYAN) {
             return AnsiString.Back.Cyan;
-        } else if (color == STHighlightColor.GREEN) {
+        } else if (color == MeowHighlight.GREEN) {
             return AnsiString.Back.Green;
-        } else if (color == STHighlightColor.MAGENTA) {
+        } else if (color == MeowHighlight.MAGENTA) {
             return AnsiString.Back.Magenta;
-        } else if (color == STHighlightColor.RED) {
+        } else if (color == MeowHighlight.RED) {
             return AnsiString.Back.Red;
-        } else if (color == STHighlightColor.YELLOW) {
+        } else if (color == MeowHighlight.YELLOW) {
             return AnsiString.Back.Yellow;
-        } else if (color == STHighlightColor.WHITE) {
+        } else if (color == MeowHighlight.WHITE) {
             return AnsiString.Back.White;
-        } else if (color == STHighlightColor.LIGHT_GRAY) {
+        } else if (color == MeowHighlight.LIGHT_GRAY) {
             return AnsiString.Back.LightGray;
-        } else if (color == STHighlightColor.DARK_GRAY) {
+        } else if (color == MeowHighlight.DARK_GRAY) {
             return AnsiString.Back.DarkGray;
         } else {
             // TODO: Dark colors
@@ -85,11 +81,11 @@ public final class MeowUtils {
         }
     }
 
-    public static String toDebugString(List<XWPFRun> runs) {
+    public static String toDebugString(List<MeowRun> runs) {
         StringBuilder builder = new StringBuilder();
         builder.append('"');
 
-        for (XWPFRun run : runs) {
+        for (MeowRun run : runs) {
             String text = run.text();
             for (int i = 0; i < text.length(); i++) {
                 char ch = text.charAt(i);
@@ -136,12 +132,18 @@ public final class MeowUtils {
         return builder.toString();
     }
 
-    public static XWPFRun toXWPFRun(String content) {
-        XWPFDocument doc = new XWPFDocument();
-        XWPFParagraph para = doc.createParagraph();
-        XWPFRun run = para.createRun();
-        run.setText(content);
-        return run;
+    public static MeowRun toRun(String content) {
+        return new MeowRun(
+                content,
+                false,
+                MeowUnderline.NONE,
+                null,
+                MeowHighlight.NONE,
+                false,
+                null,
+                null,
+                List.of()
+        );
     }
 
     private MeowUtils() {

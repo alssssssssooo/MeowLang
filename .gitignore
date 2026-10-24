@@ -46,3 +46,12 @@ bin/
 
 ### Mac OS ###
 .DS_Store
+### Native build ###
+/native/meow
+
+# Python frontend
+__pycache__/
+*.pyc
+
+# CMake
+build-native/

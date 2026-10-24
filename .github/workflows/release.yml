@@ -1,0 +1,54 @@
+name: Release
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Install build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential pkg-config \
+            zlib1g-dev libexpat1-dev libpng-dev libjpeg-dev
+
+      - name: Build and test
+        run: |
+          make -C native
+          for f in examples/*.meow; do
+            python3 tools/meowc.py "$f" -o "${f%.meow}.docx"
+          done
+          printf 'Meow\n' | ./native/meow examples/hello.docx
+          ./native/meow examples/test1.docx
+
+      - name: Create source archive
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          if [ -z "$VERSION" ] || [ "$VERSION" = "$GITHUB_REF_NAME" ]; then
+            VERSION="dev-${GITHUB_SHA::7}"
+          fi
+          mkdir -p dist
+          git archive --format=tar.gz --prefix="meow-${VERSION}/" \
+            -o "dist/meow-${VERSION}-source.tar.gz" HEAD
+          (cd dist && sha256sum ./*.tar.gz > SHA256SUMS)
+          ls -l dist
+
+      - name: Publish release
+        if: startsWith(github.ref, 'refs/tags/')
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "$GITHUB_REF_NAME" \
+            dist/*.tar.gz dist/SHA256SUMS \
+            --title "MeowLang ${GITHUB_REF_NAME#v}" \
+            --generate-notes

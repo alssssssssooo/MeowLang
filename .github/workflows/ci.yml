@@ -1,0 +1,64 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential pkg-config \
+            zlib1g-dev libexpat1-dev libpng-dev libjpeg-dev
+
+      - name: Build native interpreter
+        run: make -C native
+
+      - name: Compile examples
+        run: |
+          for f in examples/*.meow; do
+            python3 tools/meowc.py "$f" -o "${f%.meow}.docx"
+          done
+
+      - name: Run hello
+        run: printf 'Meow\n' | ./native/meow examples/hello.docx
+
+      - name: Run test1
+        run: ./native/meow examples/test1.docx
+
+      - name: Run 2048
+        run: printf 'd\ns\na\nw\nq\n' | ./native/meow examples/game2048.docx | tail -4
+
+      - name: Check cipher tables
+        run: |
+          python3 - <<'PY'
+          import re
+          import sys
+
+          sys.path.insert(0, "tools")
+          import meow_cipher as mc
+
+          src = open("native/meow.c", encoding="utf-8").read()
+
+          def block(name, typ):
+              m = re.search(r"static %s %s\[\] = \{(.*?)\n\};" % (typ, name), src, re.S)
+              if not m:
+                  raise SystemExit("missing table: " + name)
+              return [line.strip() for line in m.group(1).splitlines() if line.strip()]
+
+          functions = block("g_functions", "FunctionSpec")
+          macros = block("g_macros", "MacroSpec")
+          want_functions = [l.strip() for l in mc.cipher_c_function_lines().splitlines() if l.strip()]
+          want_macros = [l.strip() for l in mc.cipher_c_macro_lines().splitlines() if l.strip()]
+          ok = functions == want_functions and macros == want_macros
+          print("cipher tables:", "OK" if ok else "MISMATCH",
+                "(%d functions, %d macros)" % (len(functions), len(macros)))
+          raise SystemExit(0 if ok else 1)
+          PY

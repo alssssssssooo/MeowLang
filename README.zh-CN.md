@@ -2,6 +2,8 @@
 
 [English](README.md) | [繁體中文](README.zh-TW.md) | **简体中文** | [日本語](README.ja.md) | [한국어](README.ko.md)
 
+[![CI](https://github.com/alssssssssooo/MeowLang/actions/workflows/ci.yml/badge.svg)](https://github.com/alssssssssooo/MeowLang/actions/workflows/ci.yml) [![Release](https://img.shields.io/github/v/release/alssssssssooo/MeowLang?display_name=tag&sort=semver)](https://github.com/alssssssssooo/MeowLang/releases/latest)
+
 <small>这是一门为了让猫科动物——例如老虎、猫、猫娘——也能当程序员而研发的编程语言。</small>
 
 > **🐱 纯属娱乐，不可当作正规使用**

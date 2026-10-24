@@ -2,6 +2,8 @@
 
 **English** | [繁體中文](README.zh-TW.md) | [简体中文](README.zh-CN.md) | [日本語](README.ja.md) | [한국어](README.ko.md)
 
+[![CI](https://github.com/alssssssssooo/MeowLang/actions/workflows/ci.yml/badge.svg)](https://github.com/alssssssssooo/MeowLang/actions/workflows/ci.yml) [![Release](https://img.shields.io/github/v/release/alssssssssooo/MeowLang?display_name=tag&sort=semver)](https://github.com/alssssssssooo/MeowLang/releases/latest)
+
 <small>這是一門為了讓貓科動物——例如老虎、貓、貓娘——也能當程式設計師而研發的程式語言。<br>
 This language was created so that felines — tigers, cats, and catgirls — can also become programmers.</small>
 

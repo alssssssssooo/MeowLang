@@ -2,6 +2,8 @@
 
 [English](README.md) | [繁體中文](README.zh-TW.md) | [简体中文](README.zh-CN.md) | [日本語](README.ja.md) | **한국어**
 
+[![CI](https://github.com/alssssssssooo/MeowLang/actions/workflows/ci.yml/badge.svg)](https://github.com/alssssssssooo/MeowLang/actions/workflows/ci.yml) [![Release](https://img.shields.io/github/v/release/alssssssssooo/MeowLang?display_name=tag&sort=semver)](https://github.com/alssssssssooo/MeowLang/releases/latest)
+
 <small>이 언어는 호랑이, 고양이, 고양이 소녀 같은 고양잇과 동물도 프로그래머가 될 수 있도록 개발된 프로그래밍 언어입니다.</small>
 
 > **🐱 순수한 오락용이며 정식 용도로 사용할 수 없습니다**
